@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Mi Apartashower! 🏠</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:         #F4F1EC;
+            --navy:       #1B4F72;
+            --blue:       #2E86AB;
+            --glass:      rgba(169, 214, 229, 0.35);
+            --pale:       #E8F4F8;
+            --gold:       #E9B44C;
+            --text:       #0B2545;
+            --blur:       blur(12px);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Toast de error ── */
+        #toast {
+            position: fixed;
+            bottom: 84px; right: 24px;
+            background: #c0392b;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 998;
+            pointer-events: none;
+            max-width: 260px;
+        }
+        #toast.visible { opacity: 1; }
+
+        /* ════════════════════════
+           HERO
+        ════════════════════════ */
+        .hero {
+            min-height: 92vh;
+            background: linear-gradient(135deg, #0B2545 0%, #1B4F72 45%, #2E86AB 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 92px 20px 56px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(169,214,229,0.12) 0%, transparent 70%);
+            top: -80px; right: -80px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 420px; height: 420px;
+            background: radial-gradient(circle, rgba(233,180,76,0.08) 0%, transparent 70%);
+            bottom: -60px; left: -60px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 1s ease both;
+        }
+
+        .hero-emoji { font-size: 3.4rem; display: block; margin-bottom: 12px; }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.6rem, 6vw, 4.8rem);
+            color: #fff;
+            line-height: 1.1;
+            margin-bottom: 14px;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2.2vw, 1.2rem);
+            color: rgba(255,255,255,0.78);
+            font-weight: 300;
+            max-width: 520px;
+            margin: 0 auto 26px;
+            line-height: 1.65;
+        }
+
+        .scroll-cta {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        /* ════════════════════════
+           SECCIONES COMUNES
+        ════════════════════════ */
+        .section {
+            padding: 56px 18px;
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.9rem, 4vw, 2.6rem);
+            color: var(--navy);
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 56px; height: 3px;
+            background: var(--gold);
+            margin: 14px auto 0;
+            border-radius: 2px;
+        }
+
+        /* Glass card genérico */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid rgba(169, 214, 229, 0.5);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 8px 32px rgba(27, 79, 114, 0.1);
+        }
+
+        /* ════════════════════════
+           DETALLES DEL EVENTO
+        ════════════════════════ */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .detail-item { display: flex; align-items: flex-start; gap: 18px; }
+
+        .detail-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+
+        .detail-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 0.97rem;
+            margin-top: 3px;
+            line-height: 1.45;
+        }
+
+        .badge-bailar {
+            background: linear-gradient(135deg, var(--navy), var(--blue));
+            color: #fff;
+            padding: 11px 18px;
+            border-radius: 999px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+            display: block;
+            letter-spacing: 0.2px;
+        }
+
+        /* ════════════════════════
+           MAPA
+        ════════════════════════ */
+        .map-wrap {
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(27, 79, 114, 0.15);
+            margin-bottom: 12px;
+        }
+
+        .map-wrap iframe {
+            width: 100%;
+            height: 320px;
+            border: none;
+            display: block;
+        }
+
+        .btn-maps {
+            display: block;
+            text-align: center;
+            background: var(--blue);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-maps:hover { background: var(--navy); transform: translateY(-1px); }
+
+        /* ════════════════════════
+           LISTA DE REGALOS
+        ════════════════════════ */
+        .gift-hint {
+            background: var(--pale);
+            border-left: 4px solid var(--gold);
+            border-radius: 0 14px 14px 0;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: var(--navy);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        #gifts-container {
+            text-align: center;
+            padding: 40px;
+            color: var(--blue);
+            font-style: italic;
+        }
+
+        .gifts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+            text-align: left;
+            padding: 0;
+        }
+
+        .gift-card {
+            background: var(--glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid rgba(169, 214, 229, 0.4);
+            border-radius: 16px;
+            padding: 18px;
+            transition: box-shadow 0.2s;
+        }
+        .gift-card:hover { box-shadow: 0 6px 24px rgba(27, 79, 114, 0.12); }
+        .gift-card.tomado { background: rgba(169, 214, 229, 0.12); border-color: rgba(169, 214, 229, 0.2); }
+
+        .gift-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .gift-em { font-size: 1.6rem; }
+
+        .gift-name { font-weight: 600; font-size: 0.92rem; line-height: 1.35; }
+        .gift-card.tomado .gift-name { text-decoration: line-through; color: #999; }
+
+        .gift-by { font-size: 0.8rem; color: var(--blue); font-weight: 500; margin-top: 3px; }
+        .gift-by::before { content: '✓ '; }
+
+        .gift-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: stretch; }
+
+        .gift-input {
+            min-width: 0;
+            padding: 10px 12px;
+            border: 1px solid rgba(46, 134, 171, 0.35);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            font-size: 0.82rem;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .gift-input:focus { border-color: var(--blue); }
+        .gift-input::placeholder { color: #b0b8c4; }
+
+        .btn-apartar {
+            padding: 10px 14px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s;
+        }
+        .btn-apartar:hover { background: var(--navy); }
+        .btn-apartar:disabled { background: #b0bec5; cursor: not-allowed; }
+
+        /* ════════════════════════
+           MEMES
+        ════════════════════════ */
+        .meme-section { text-align: center; }
+
+        .meme-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            min-height: 350px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 8px 36px rgba(27,79,114,.2);
+        }
+
+        .meme-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity .5s ease;
+        }
+        .meme-img.activo { opacity: 1; }
+
+        /* ════════════════════════
+           FOOTER
+        ════════════════════════ */
+        footer {
+            background: linear-gradient(135deg, #0B2545, #1B4F72);
+            color: rgba(255,255,255,0.82);
+            text-align: center;
+            padding: 38px 18px;
+        }
+
+        .footer-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        footer p { font-size: 0.88rem; margin-top: 4px; }
+        footer .small { margin-top: 18px; font-size: 0.72rem; opacity: 0.4; }
+
+        /* ════════════════════════
+           ANIMACIONES
+        ════════════════════════ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-8px); }
+        }
+
+        /* ════════════════════════
+           RESPONSIVE
+        ════════════════════════ */
+        @media (max-width: 600px) {
+            .hero { min-height: 88vh; padding: 80px 16px 44px; }
+            .hero h1 { font-size: clamp(2.2rem, 10vw, 3.2rem); }
+            .hero p { font-size: 0.98rem; margin-bottom: 20px; }
+            .section { padding: 44px 14px; }
+            .section-title { margin-bottom: 22px; }
+            .details-grid { grid-template-columns: 1fr; gap: 12px; }
+            .gift-form { grid-template-columns: 1fr; }
+            .btn-apartar { width: 100%; }
+            .gifts-grid { grid-template-columns: 1fr; }
+            .meme-wrap { width: min(100%, 290px); }
+            .map-wrap iframe { height: 280px; }
+            .glass { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ══════════════════════════════
+     HERO
+══════════════════════════════ -->
+<section class="hero">
+    <div class="hero-content">
+        <span class="hero-emoji">🏠</span>
+        <h1>¡Mi Apartashower!</h1>
+        <p>Date prisa Gokú, la torre de Jei aún no está tan habitada no creo que jodan por ruido.</p>
+        <span class="scroll-cta">↓ Baja y aparta tu regalo ↓</span>
+    </div>
+</section>
+
+<!-- ══════════════════════════════
+     DETALLES DEL EVENTO
+══════════════════════════════ -->
+<div class="section">
+    <h2 class="section-title">Detalles del Evento</h2>
+    <div class="glass">
+        <div class="details-grid">
+            <div class="detail-item">
+                <span class="detail-icon">📅</span>
+                <div>
+                    <div class="detail-label">Fecha</div>
+                    <div class="detail-value">Sábado 20 de Junio, 2026</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span class="detail-icon">🕖</span>
+                <div>
+                    <div class="detail-label">Hora</div>
+                    <div class="detail-value">8:00 PM</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span class="detail-icon">📍</span>
+                <div>
+                    <div class="detail-label">Lugar</div>
+                    <div class="detail-value">Cra 38 # 14-11<br>Conj. Centrik View, Torre 4 – Apto 508</div>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span class="detail-icon">🍹</span>
+                <div>
+                    <div class="detail-label">Bienvenida</div>
+                    <div class="detail-value">Cócteles de Apertura y Snacks</div>
+                </div>
+            </div>
+        </div>
+        <span class="badge-bailar">🚫🪑 No hay sillas ni sofá — vienen es a tomar alcohol y bailar</span>
+    </div>
+</div>
+
+<!-- ══════════════════════════════
+     MAPA
+══════════════════════════════ -->
+<div class="section">
+    <h2 class="section-title">¿Cómo llegar?</h2>
+    <div class="map-wrap">
+        <iframe
+            src="https://maps.google.com/maps?q=Carrera+38+%23+14-11+Conjunto+Centrik+View&output=embed"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+    <a
+        href="https://maps.google.com/maps?q=Carrera+38+%23+14-11+Conjunto+Centrik+View"
+        target="_blank"
+        rel="noopener"
+        class="btn-maps">
+        📍 Abrir en Google Maps
+    </a>
+</div>
+
+<!-- ══════════════════════════════
+     LISTA DE REGALOS
+══════════════════════════════ -->
+<div class="section">
+    <h2 class="section-title">Lista de Regalos</h2>
+
+    <div class="gift-hint">
+        💙 Sé que las cosas pueden ser algo costosas — pero es de a parejas o grupito, ¡solo pon sus nombres ya! Lo importante es que vengas. 🎉
+    </div>
+
+    <div id="gifts-container">Cargando lista de regalos...</div>
+</div>
+
+<!-- ══════════════════════════════
+     MEMES
+══════════════════════════════ -->
+<div class="section meme-section">
+    <h2 class="section-title">Mientras tanto yo ... 🫠</h2>
+    <div class="meme-wrap" id="meme-wrap"></div>
+</div>
+
+<!-- ══════════════════════════════
+     FOOTER
+══════════════════════════════ -->
+<footer>
+    <div class="footer-title">🕺 ¡Nos vemos para volvernos m|3rd@! 💃</div>
+    <p>No hay dónde sentarse, puro reggaeton pesado y merengue salvaje. En lugar de hora loca hay hora de vallenatos pesados</p>
+    <p class="small">Apartashower Jei 2026 ✨</p>
+</footer>
+
+<!-- ══════════════════════════════
+     JAVASCRIPT
+══════════════════════════════ -->
+<script>
+/* ── CONFIG ─────────────────────────────────────────────────
+   ⚠️  Reemplaza TU_BIN_ID con el ID de tu bin en JSONBin.io
+   Ejemplo: '686abc1234def5678xyz'
+────────────────────────────────────────────────────────── */
+const BIN_ID     = '6a1f7fb9da38895dfe7e75e6';
+const MASTER_KEY = '$2a$10$gaVw4qK512n7yeDkk0o9ZOuK8jTY.QEL72K8ENuATOAnbW5vuXkwO';
+
+/* ── JSON INICIAL PARA EL BIN ────────────────────────────────
+   Copia este bloque y pégalo al crear tu bin en jsonbin.io
+
+{
+  "regalos": [
+    { "id":  1, "nombre": "Set De Toallas",                                       "emoji": "🧺",  "apartadoPor": "" },
+    { "id":  2, "nombre": "Cobija Térmica",                                        "emoji": "🛌",  "apartadoPor": "" },
+    { "id":  3, "nombre": "Almohadas",                                             "emoji": "🛏️",  "apartadoPor": "" },
+    { "id":  4, "nombre": "Olla Arrocera",                                         "emoji": "🍚",  "apartadoPor": "" },
+    { "id":  5, "nombre": "Plancha",                                               "emoji": "👔",  "apartadoPor": "" },
+    { "id":  6, "nombre": "Botiquín de Primeros Auxilios",                         "emoji": "🩹",  "apartadoPor": "" },
+    { "id":  7, "nombre": "Extintor Pequeño",                                      "emoji": "🧯",  "apartadoPor": "" },
+    { "id":  8, "nombre": "Tapete Antideslizante para Baño",                       "emoji": "🚿",  "apartadoPor": "" },
+    { "id":  9, "nombre": "Bata de Baño",                                          "emoji": "🛁",  "apartadoPor": "" },
+    { "id": 10, "nombre": "Bono Homecenter / IKEA / Falabella / Éxito / Alkosto",  "emoji": "🎁",  "apartadoPor": "" },
+    { "id": 11, "nombre": "Báscula de Cocina",                                     "emoji": "⚖️",  "apartadoPor": "" },
+    { "id": 12, "nombre": "Set de Bowls Mezcladores",                              "emoji": "🥣",  "apartadoPor": "" },
+    { "id": 13, "nombre": "Delantal y Guantes Resistentes al Calor",               "emoji": "🧤",  "apartadoPor": "" },
+    { "id": 14, "nombre": "Ganchos de Ropa",                                       "emoji": "👚",  "apartadoPor": "" },
+    { "id": 15, "nombre": "Exprimidor de Cítricos",                                "emoji": "🍋",  "apartadoPor": "" },
+    { "id": 16, "nombre": "Kit Noche de Películas (Manta, Crispetera, etc.)",      "emoji": "🎬",  "apartadoPor": "" },
+    { "id": 17, "nombre": "Difusor de Aromas / Velas Aromáticas",                  "emoji": "🕯️",  "apartadoPor": "" },
+    { "id": 18, "nombre": "Paraguas / Sombrilla",                                  "emoji": "☂️",  "apartadoPor": "" },
+    { "id": 19, "nombre": "Kit de Costura Básico",                                 "emoji": "🧵",  "apartadoPor": "" },
+    { "id": 20, "nombre": "Echo Dot",                                              "emoji": "🔊",  "apartadoPor": "" },
+    { "id": 21, "nombre": "Test 1",                                                "emoji": "🧪",  "apartadoPor": "" },
+    { "id": 22, "nombre": "Test 2",                                                "emoji": "🧪",  "apartadoPor": "" }
+  ]
+}
+────────────────────────────────────────────────────────── */
+
+/* ── JSONBIN API ── */
+async function cargarRegalos() {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': MASTER_KEY }
+    });
+    if (!res.ok) throw new Error('GET falló');
+    const data = await res.json();
+    return data.record.regalos;
+}
+
+async function guardarRegalos(regalos) {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: {
+            'X-Master-Key': MASTER_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ regalos })
+    });
+    if (!res.ok) throw new Error('PUT falló');
+}
+
+/* ── RENDER LISTA ── */
+let cache = [];
+
+function renderLista(regalos) {
+    cache = regalos;
+    const el = document.getElementById('gifts-container');
+    el.className = 'gifts-grid';
+    el.innerHTML = regalos.map(r => {
+        if (r.apartadoPor) {
+            return `
+            <div class="gift-card tomado">
+                <div class="gift-head">
+                    <span class="gift-em">${r.emoji}</span>
+                    <div>
+                        <div class="gift-name">${r.nombre}</div>
+                        <div class="gift-by">${r.apartadoPor}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        return `
+        <div class="gift-card" id="card-${r.id}">
+            <div class="gift-head">
+                <span class="gift-em">${r.emoji}</span>
+                <div class="gift-name">${r.nombre}</div>
+            </div>
+            <div class="gift-form">
+                <input
+                    class="gift-input"
+                    id="inp-${r.id}"
+                    type="text"
+                    placeholder="Tu nombre (o pareja / grupito)"
+                    maxlength="60"
+                />
+                <button class="btn-apartar" onclick="apartar(${r.id})">Apartar</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function apartar(id) {
+    const inp = document.getElementById(`inp-${id}`);
+    const nombre = inp.value.trim();
+    if (!nombre) { inp.focus(); return; }
+
+    const btn = inp.nextElementSibling;
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const actualizado = cache.map(r => r.id === id ? { ...r, apartadoPor: nombre } : r);
+    try {
+        await guardarRegalos(actualizado);
+        renderLista(actualizado);
+    } catch {
+        mostrarToast('Error al guardar. Intenta de nuevo.');
+        btn.disabled = false;
+        btn.textContent = 'Apartar';
+    }
+}
+
+function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('visible');
+    setTimeout(() => t.classList.remove('visible'), 3500);
+}
+
+/* ── CARRUSEL DE MEMES ── */
+const memes = [
+    'https://imgs.search.brave.com/TFNU5C8SOT7ZhmyW4EtuECp1d6HLdrpNtwVZziLYvcc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMzLm1lbWVkcm9p/ZC5jb20vaW1hZ2Vz/L1VQTE9BREVEOTI3/LzY4M2U1OGJkOGVi/MjMuanBlZw    ',
+    'https://imgs.search.brave.com/yeQJVDEBfWtnb5zw815bYTDUE6LdE85wbz2xBn_VR3U/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVyYnViLmNvbS9p/bWFnZXMvY3VhbmRv/LXJlY2llbi10ZS12/YXMtYS12aXZpci1z/b2xvLTEwNDE4Lmpw/Zw',
+    'https://imgs.search.brave.com/RgRFxJHjU57GrzaDIMP8AJI6TfEunJ4DLRiMaifhcXY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMzLm1lbWVkcm9p/ZC5jb20vaW1hZ2Vz/L1VQTE9BREVEOTA4/LzY1NmQxOTI2ODFl/OTQuanBlZw',
+    'https://imgs.search.brave.com/K8m2wsINJX1KqZE8KPsUVuWNto7ba1Rst2q6BmKa9Lo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXM3Lm1lbWVkcm9p/ZC5jb20vaW1hZ2Vz/L1VQTE9BREVEMzAy/LzY3NGZhNTVlOGI0/MjcuanBlZw',
+    'https://imgs.search.brave.com/rPxMpN3KwkTAzLJsRPxIB174nU3Uz4uG25_Q6nV-BM8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXM3Lm1lbWVkcm9p/ZC5jb20vaW1hZ2Vz/L1VQTE9BREVENDIw/LzY2ZWFlODQ4ODVl/MmQuanBlZw',
+    'https://imgs.search.brave.com/Nh-HbXtq549Pu4DetweJlBX2gBwxGzwGLFw_pd5YRbw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXM3Lm1lbWVkcm9p/ZC5jb20vaW1hZ2Vz/L1VQTE9BREVENzMy/LzY3MTAyNmRmYmY3/OTMuanBlZw',
+    'https://imgs.search.brave.com/rNl-Zz8pUDuTx8dXs8cYY3iShAsU9h_1r-x5VPeh4dQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMzLm1lbWVkcm9p/ZC5jb20vaW1hZ2Vz/L1VQTE9BREVEODky/LzY3MzRhYzVkNjI1/OGYuanBlZw',
+    'https://imgs.search.brave.com/EcS8vsKBpuned6kmFjtcbsgfJiNmwhXs6JWE7dQ0VpM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWNzLm1lbW9uZG8u/Y29tL3AvOTkvY2Nz/LzIwMjQvMTEvQ0Nf/MjgxMjQyNl83YTc3/ZGQ1OTMyNTM0ODVh/OWQ5NjRhZGYzYWU2/YWNkNV9tZW1lX290/cm9zX2N1YW5kb19l/bF9oaWpvX3Z1ZWxh/X2RlbF9uaWRvLmpw/Zz9jYj05NjI3MzAw'
+];
+
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function initCarrusel() {
+    const wrap = document.getElementById('meme-wrap');
+    memes.forEach(src => {
+        const img = document.createElement('img');
+        img.className = 'meme-img';
+        img.src = src;
+        img.alt = 'meme';
+        wrap.appendChild(img);
+    });
+
+    let orden = shuffle([...Array(memes.length).keys()]);
+    let pos = 0;
+    const imgs = wrap.querySelectorAll('.meme-img');
+    imgs[orden[0]].classList.add('activo');
+
+    setInterval(() => {
+        imgs[orden[pos]].classList.remove('activo');
+        pos++;
+        if (pos >= orden.length) { orden = shuffle([...Array(memes.length).keys()]); pos = 0; }
+        imgs[orden[pos]].classList.add('activo');
+    }, 4000);
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', async () => {
+    initCarrusel();
+
+    try {
+        const regalos = await cargarRegalos();
+        renderLista(regalos);
+    } catch {
+        document.getElementById('gifts-container').innerHTML =
+            '<p style="color:#c0392b; font-style:italic;">No se pudo cargar la lista.<br>Verifica que el BIN ID esté configurado.</p>';
+    }
+});
+</script>
+
+</body>
+</html>
